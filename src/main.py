@@ -3,7 +3,6 @@ from model import Model
 from extract import Extract
 from microphone import Microphone
 
-import tensorflow as tf
 import tkinter as tk
 import os
 import gc
@@ -35,23 +34,23 @@ TEST_DIR = "audio/testset"
 
 extractor = Extract()
 file_names = [os.path.join(TEST_DIR, file) for file in sorted(os.listdir(TEST_DIR))]
-data = tf.data.Dataset.from_tensor_slices(file_names)
-data = data.map(extractor.get_audio_as_tensor)
-data = data.map(extractor.audio_to_mfcc)
-data = data.batch(8)
+audios = [extractor.get_audio_as_tensor(file_name) for file_name in file_names]
+mfccs = [extractor.audio_to_mfcc(audio) for audio in audios]
 del extractor
 
-resnet = Model("model/resnet2.keras")
-predicted_results = resnet.predict(data)
+resnet = Model("model/resnet2.onnx")
+predicted_results = resnet.predict_onnx(mfccs)
 classname = ['9', '6', '5', '1', '0', '3', '7', '2', '8', '4', 'F']
 predicted_classes = [classname[id] for id in predicted_results]
 del resnet
 
-window = tk.Tk()
-window.geometry("500x300") 
-label = tk.Label(window, text=f"Kode Ruangan: {predicted_classes}")
-custom_font = ("Arial", 32) 
-label.config(font=custom_font)
-label.pack(expand=True, fill="both")
-window.mainloop()
-del window
+print(predicted_classes)
+
+# window = tk.Tk()
+# window.geometry("500x300") 
+# label = tk.Label(window, text=f"Kode Ruangan: {predicted_classes}")
+# custom_font = ("Arial", 32) 
+# label.config(font=custom_font)
+# label.pack(expand=True, fill="both")
+# window.mainloop()
+# del window
