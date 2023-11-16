@@ -17,7 +17,7 @@ class Model:
         return predicted_ids
     
     def _load_onnx(self):
-        providers = ['CUDAExecutionProvider']
+        providers = ['CPUExecutionProvider','CUDAExecutionProvider']
         ort_sess = ort.InferenceSession(self.model_path, providers=providers)
         return ort_sess
 
