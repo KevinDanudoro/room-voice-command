@@ -7,20 +7,23 @@ from microphone import Microphone
 
 
 # Mendapatkan audio dari microphone
-webcam = Microphone(device_index=4)
-audio = webcam.capture_audio(access_time=5)
+webcam = Microphone(device_index=11)
+audio = webcam.capture_audio(access_time=30)
 
 del webcam
 gc.collect()
 
 
-# Mereduksi noise dan membagi audio berdasarkan fase hening
 room_voice = Audio(audio)
-room_voice.save_chunks(
-    audio=audio,
-    export_dir="audio/testset", 
-    file_name=f"f64"
-)
+# room_voice.save_chunks(audio, export_dir="audio/testset", file_name="ftest")
+
+audio_slices = room_voice.split_audio()
+for i, chunk in enumerate(audio_slices): 
+    room_voice.save_chunks(
+        audio=chunk, 
+        export_dir="audio/dataset/f",
+        file_name=f"wildan-{i}" 
+    )
 
 del room_voice
 gc.collect()

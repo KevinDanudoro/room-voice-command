@@ -1,47 +1,26 @@
-# from audio import Audio
+import tkinter as tk
+
+from preprocess import *
 from model import Model
 from extract import Extract
-# from microphone import Microphone
-
-import tkinter as tk
-import os
-
-TEST_DIR = "audio/testset"
+from microphone import Microphone
 
 
-# # Mendapatkan audio dari microphone
-# webcam = Microphone(device_index=11)
-# audio = webcam.capture_audio(access_time=12)
-
-# del webcam
-# gc.collect()
-
-
-# # Mereduksi noise dan membagi audio berdasarkan fase hening
-# room_voice = Audio(audio)
-# audio = room_voice.noise_reduce()
-# chunks = room_voice.split_audio()
-# for i, chunk in enumerate(chunks): 
-#     room_voice.save_chunks(
-#         audio=chunk, 
-#         export_dir=TEST_DIR, 
-#         file_name=f"test-{i}" 
-#     )
-
-# del room_voice
-# gc.collect()
+# Mendapatkan audio dari microphone
+webcam = Microphone(device_index=11)
+audio = webcam.capture_audio(access_time=5)
+del webcam
 
 extractor = Extract()
-file_names = [os.path.join(TEST_DIR, file) for file in sorted(os.listdir(TEST_DIR))]
-audios = [extractor.get_audio_as_tensor(file_name) for file_name in file_names]
-mfccs = [extractor.audio_to_mfcc(audio) for audio in audios]
-del extractor
+audio_slices = librosa_split(audio)
+mfccs = [extractor.librosa_audio_to_mfcc(np.expand_dims(audio, axis=0)) for audio in audio_slices]
 
-resnet = Model("model/resnet_mfcc.onnx")
+resnet = Model("model/resnet_aug7.onnx")
 predicted_results = resnet.predict_onnx(mfccs)
 classname = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'f']
 predicted_classes = [classname[id] for id in predicted_results]
 del resnet
+
 
 window = tk.Tk()
 window.geometry("500x300") 

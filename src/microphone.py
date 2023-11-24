@@ -1,6 +1,6 @@
 import wave
 import os
-from pydub import AudioSegment
+import librosa
 import pyaudio
 from time import time
 
@@ -21,7 +21,7 @@ class Microphone:
         frames, sample_size = self._record(access_time, frame_per_buffer, format, channels, rate)
         
         self._save_audio(path=output_path, frames=frames, sample_size=sample_size, channels=channels, rate=rate)
-        audio = AudioSegment.from_wav(file=output_path)
+        audio, _ = librosa.load(output_path, sr=16000, mono=True)
         self._delete_audio(path=output_path)
 
         return audio
