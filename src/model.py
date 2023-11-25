@@ -1,29 +1,20 @@
 import tensorflow as tf
-import numpy as np
 import onnxruntime as ort
+import numpy as np
 
 class Model:
-    def __init__(self, model_path):
-        self.model_path = model_path
-
-    def _load_model(self):
-        loaded_model = tf.keras.models.load_model(self.model_path)
-        return loaded_model
+    def __init__(self, path,  classnames=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'f', 'noise']):
+        self.model = self._load_onnx(path)
+        self.classnames = classnames
     
-    def predict(self, data):
-        loaded_model = self._load_model()
-        predicted = loaded_model.predict(data)
-        predicted_ids = np.argmax(predicted, axis=-1)
-        return predicted_ids
-    
-    def _load_onnx(self):
+    def _load_onnx(self,path):
         providers = ['CPUExecutionProvider','CUDAExecutionProvider']
-        ort_sess = ort.InferenceSession(self.model_path, providers=providers)
+        ort_sess = ort.InferenceSession(path, providers=providers)
         return ort_sess
 
     def predict_onnx(self, data):
-        ort_sess = self._load_onnx()
-        predicted_batch = ort_sess.run(None, {"input": data})
+        predicted_batch = self.model.run(None, {"input": data})
         predicted_batch = tf.squeeze(predicted_batch).numpy()
         predicted_ids = np.argmax(predicted_batch, axis=-1)
-        return predicted_ids
+        predicted_classes = [self.classnames[id] for id in predicted_ids]
+        return predicted_classes

@@ -7,7 +7,7 @@ from microphone import Microphone
 
 
 # Mendapatkan audio dari microphone
-webcam = Microphone(device_index=11)
+webcam = Microphone(device_index=4)
 audio = webcam.capture_audio(access_time=30)
 
 del webcam
@@ -22,7 +22,7 @@ for i, chunk in enumerate(audio_slices):
     room_voice.save_chunks(
         audio=chunk, 
         export_dir="audio/dataset/f",
-        file_name=f"wildan-{i}" 
+        file_name=f"test-{i}" 
     )
 
 del room_voice
