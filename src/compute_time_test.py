@@ -1,6 +1,7 @@
 import tkinter as tk
-import numpy as np
+from time import time
 
+import numpy as np
 from pyaudio import PyAudio, paFloat32
 
 from preprocess import librosa_split
@@ -42,11 +43,18 @@ def extract_audio_to_mfcc(audio):
     return mfcc
 
 def predict_audio(model, mfccs):
+    predict_start = time()
     result = model.predict_onnx(mfccs)
+    predict_end = time()
+
+    print(f"-----// Waktu Prediksi ResNet Model: {predict_end - predict_start} //-----")
     return result
 
 def main(full_audio):
     audio_slices = librosa_split(full_audio)
+
+    mfcc_start = time()
+
     threads = []
     for audio in audio_slices:
         t_extract = CustomThread(target=extract_audio_to_mfcc, args=(audio,))
@@ -55,6 +63,10 @@ def main(full_audio):
 
     resnet = Model("model/resnet_aug7.onnx")
     mfccs = [thread.join() for thread in threads]
+    
+    mfcc_end = time()
+    print(f"-----// Waktu ekstraksi MFCC: {mfcc_end - mfcc_start} //-----")
+
     result = predict_audio(resnet, mfccs)
     return result
 
