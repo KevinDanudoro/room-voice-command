@@ -2,17 +2,22 @@ import tkinter as tk
 import numpy as np
 
 from pyaudio import PyAudio, paFloat32
+import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
 
 from preprocess import librosa_split
 from extract import Extract
 from model import Model
 from thread import CustomThread
+import soundfile as sf
+
+SAMPLE_RATE = 16000
 
 def init_mic():
     p = PyAudio()
     stream = p.open(format=paFloat32,
                     channels=1,
-                    rate=16000,
+                    rate=SAMPLE_RATE,
                     input=True,
                     frames_per_buffer=3200,
                     input_device_index=4)
@@ -24,15 +29,15 @@ def listen_mic(stream, callback, label):
     stream.start_stream()
     audio = np.array([])
     while loop:
-        if(audio.shape[0] % 16000 <= 50):
-            label.configure(text=f"Merekam Suara Selama {5 - (audio.shape[0] // 16000)} detik")
+        if(audio.shape[0] % SAMPLE_RATE <= 50):
+            label.configure(text=f"Merekam Suara Selama {5 - (audio.shape[0] // SAMPLE_RATE)} detik")
         audio_stream = np.frombuffer(stream.read(3200), dtype=np.float32)
         audio = np.concatenate((audio, audio_stream))
-        if(audio.shape[0] < 80000): continue
+        if(audio.shape[0] < 5 * SAMPLE_RATE): continue
         stream.stop_stream()
         label.configure(text="Memproses Suara...")
 
-        result = callback(audio[:80000])
+        result = callback(audio[:5 * SAMPLE_RATE])
         label.configure(text=f"Kode Ruangan: {result[0]}{result[1]}.{result[2]}")
         loop = False
 
@@ -48,7 +53,8 @@ def predict_audio(model, mfccs):
 def main(full_audio):
     audio_slices = librosa_split(full_audio)
     threads = []
-    for audio in audio_slices:
+    for i, audio in enumerate(audio_slices):
+        sf.write(f"audio/testset/test_kevin_f01h_{i+1}.wav", audio.numpy(), SAMPLE_RATE)
         t_extract = CustomThread(target=extract_audio_to_mfcc, args=(audio,))
         t_extract.start()
         threads.append(t_extract)

@@ -1,5 +1,5 @@
-import tensorflow as tf
 import librosa
+import tensorflow as tf
 
 N_SAMPLES = 10000
 SAMPLE_RATE = 16000

@@ -15,6 +15,5 @@ class Model:
     def predict_onnx(self, data):
         predicted_batch = self.model.run(None, {"input": data})
         predicted_batch = tf.squeeze(predicted_batch).numpy()
-        predicted_ids = np.argmax(predicted_batch, axis=-1)
-        predicted_classes = [self.classnames[id] for id in predicted_ids]
+        predicted_classes = [self.classnames[np.argmax(pred)] if(np.max(pred) > 0.9) else None for pred in predicted_batch]
         return predicted_classes
